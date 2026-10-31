@@ -1,0 +1,9 @@
+{
+  "name": "WOD TRACKER",
+  "short_name": "WOD TRACKER",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#101217",
+  "theme_color": "#111318",
+  "icons": []
+}

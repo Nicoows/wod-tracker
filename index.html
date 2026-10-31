@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111318"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<title>WOD TRACKER</title>
+<style>
+:root{--bg:#101217;--panel:#191d25;--panel2:#222834;--line:#303744;--muted:#9aa4b2;--text:#f5f7fa;--accent:#ff8a24;--green:#55d69e;--red:#ff6868}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding-bottom:88px}
+header{padding:22px 18px 14px;position:sticky;top:0;background:rgba(16,18,23,.94);backdrop-filter:blur(12px);z-index:4;border-bottom:1px solid #252a33}
+.brand{font-size:22px;font-weight:900;letter-spacing:1.5px}.brand span{color:var(--accent)}.sub{color:var(--muted);font-size:11px;letter-spacing:1.8px;margin-top:4px}
+main{max-width:760px;margin:auto;padding:18px}.screen{display:none}.screen.active{display:block}.eyebrow{font-size:11px;color:var(--accent);font-weight:800;letter-spacing:1.6px;text-transform:uppercase;margin:8px 0}.heading{font-size:25px;font-weight:850;margin:4px 0 16px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.stat,.card{background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:15px}.stat small{display:block;color:var(--muted);font-size:12px}.stat strong{display:block;font-size:28px;margin-top:7px}
+.card{margin:10px 0}.card h3{margin:0 0 8px;font-size:16px}.muted{color:var(--muted)}.small{font-size:12px}.row{display:flex;align-items:center;justify-content:space-between;gap:10px}.tag{display:inline-block;background:#30271f;color:#ffb36e;border-radius:30px;padding:5px 9px;font-size:11px;font-weight:750}
+button,.btn{border:0;border-radius:12px;padding:12px 14px;font-weight:800;background:var(--accent);color:#17120d;cursor:pointer;font-size:14px}.secondary{background:var(--panel2);color:var(--text);border:1px solid var(--line)}.danger{background:#3b2024;color:#ff9c9c}.full{width:100%}
+label{display:block;color:#c6ced8;font-size:12px;font-weight:700;margin:13px 0 6px}input,select,textarea{width:100%;background:#11151c;border:1px solid var(--line);border-radius:11px;padding:12px;color:var(--text);font:inherit;outline:none}input:focus,select:focus,textarea:focus{border-color:var(--accent)}textarea{min-height:75px;resize:vertical}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.exercise{background:#11151c;border:1px solid var(--line);padding:12px;border-radius:13px;margin:9px 0}.exercise .formgrid{grid-template-columns:repeat(3,1fr)}.exercise input{padding:10px}.exercise-title{font-weight:800;font-size:13px}
+nav{position:fixed;bottom:0;left:0;right:0;background:#171b22;border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:9px 4px calc(9px + env(safe-area-inset-bottom));z-index:5}
+nav button{background:none;color:var(--muted);padding:7px 5px;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:58px}nav button b{font-size:19px}nav button.active{color:var(--accent)}
+.item{padding:13px 0;border-bottom:1px solid var(--line)}.item:last-child{border:0}.score{font-size:22px;font-weight:900}.empty{text-align:center;padding:28px 15px;color:var(--muted)}
+.bar{height:8px;background:#303744;border-radius:20px;overflow:hidden;margin-top:9px}.bar span{display:block;height:100%;background:var(--accent);border-radius:20px}
+.hidden{display:none!important}.pillrow{display:flex;gap:7px;flex-wrap:wrap;margin:9px 0}.pill{padding:7px 10px;border:1px solid var(--line);border-radius:30px;color:var(--muted);font-size:12px;cursor:pointer}.pill.selected{border-color:var(--accent);color:var(--accent)}
+footer{color:#6f7a88;text-align:center;font-size:11px;padding:20px 5px}
+@media(min-width:650px){main{padding:25px}.grid{grid-template-columns:repeat(4,1fr)}}
+</style>
+</head>
+<body>
+<header><div class="brand">WOD <span>TRACKER</span></div><div class="sub">TON CARNET D'ENTRAÎNEMENT</div></header>
+<main>
+<section id="home" class="screen active">
+ <div class="eyebrow">Vue d'ensemble</div><div class="heading">Salut, champion. 👊</div>
+ <div class="grid">
+  <div class="stat"><small>Séances enregistrées</small><strong id="total">0</strong></div>
+  <div class="stat"><small>Ce mois-ci</small><strong id="month">0</strong></div>
+  <div class="stat"><small>Benchmarks suivis</small><strong id="benchCount">0</strong></div>
+  <div class="stat"><small>Exercices saisis</small><strong id="exerciseCount">0</strong></div>
+ </div>
+ <div class="card"><div class="row"><h3>Dernières séances</h3><button class="secondary" onclick="show('history')">Tout voir</button></div><div id="recent"></div></div>
+ <div class="card"><h3>Ton activité</h3><div class="muted small">Séances des 7 derniers jours</div><div id="weekBars" class="row" style="align-items:end;height:95px;margin-top:10px"></div></div>
+ <button class="full" onclick="newWod()">＋ Enregistrer une séance</button>
+</section>
+
+<section id="add" class="screen">
+ <div class="eyebrow">Journal d'entraînement</div><div class="heading">Nouvelle séance</div>
+ <label>Nom du WOD</label><input id="wname" placeholder="Ex. Fran, WOD du jour...">
+ <div class="formgrid">
+  <div><label>Date</label><input id="wdate" type="date"></div>
+  <div><label>Format</label><select id="wtype"><option>For Time</option><option>AMRAP</option><option>EMOM</option><option>Autre</option></select></div>
+ </div>
+ <div class="formgrid">
+  <div><label>Durée / time cap (min)</label><input id="duration" type="number" min="0" step="0.5" placeholder="Ex. 12"></div>
+  <div><label>Score principal</label><select id="scoreType"><option value="time">Temps</option><option value="rounds">Rounds + reps</option><option value="reps">Répétitions</option><option value="weight">Poids (kg)</option><option value="custom">Autre / notes</option></select></div>
+ </div>
+ <div class="formgrid">
+  <div><label>Score – valeur</label><input id="scoreValue" placeholder="Ex. 06:42"></div>
+  <div><label>Rounds (si applicable)</label><input id="scoreRounds" type="number" min="0" placeholder="Ex. 8"></div>
+ </div>
+ <label>Répétitions supplémentaires</label><input id="scoreReps" type="number" min="0" placeholder="Ex. 12">
+ <div class="row" style="margin-top:20px"><h3>Exercices</h3><button class="secondary" type="button" onclick="addExercise()">＋ Ajouter</button></div>
+ <div id="exercises"></div>
+ <label>Notes / ressenti</label><textarea id="notes" placeholder="Sensations, stratégie, adaptations, niveau de difficulté..."></textarea>
+ <button class="full" style="margin-top:17px" onclick="saveWod()">Enregistrer le WOD</button>
+ <button class="full secondary" style="margin-top:8px" onclick="show('library')">Choisir un benchmark</button>
+</section>
+
+<section id="history" class="screen">
+ <div class="eyebrow">Toutes tes performances</div><div class="heading">Historique</div>
+ <input id="searchHistory" placeholder="Rechercher un WOD..." oninput="renderHistory()">
+ <div class="pillrow" id="filters"><span class="pill selected" onclick="setFilter('Tous',this)">Tous</span><span class="pill" onclick="setFilter('For Time',this)">For Time</span><span class="pill" onclick="setFilter('AMRAP',this)">AMRAP</span><span class="pill" onclick="setFilter('EMOM',this)">EMOM</span></div>
+ <div id="historyList"></div>
+</section>
+
+<section id="library" class="screen">
+ <div class="eyebrow">Références & inspiration</div><div class="heading">Bibliothèque WOD</div>
+ <p class="muted small">Sélectionne un benchmark pour préremplir une séance. Tu peux ensuite modifier les mouvements, charges et répétitions.</p>
+ <div id="libraryList"></div>
+</section>
+
+<section id="progress" class="screen">
+ <div class="eyebrow">Analyse personnelle</div><div class="heading">Progression</div>
+ <div class="card"><h3>Volume de séances</h3><div id="progressBars"></div></div>
+ <div class="card"><h3>Records personnels</h3><div id="records"></div></div>
+ <div class="card"><h3>Comparer un WOD</h3><label>Choisir un WOD</label><select id="compareSelect" onchange="renderComparison()"></select><div id="comparison"></div></div>
+ <div class="card"><h3>Sauvegarde de tes données</h3><p class="muted small">Tes séances sont enregistrées sur cet appareil. Exporte régulièrement une copie JSON pour ne pas les perdre.</p><div class="row"><button onclick="exportData()">Exporter</button><button class="secondary" onclick="document.getElementById('importFile').click()">Importer</button></div><input id="importFile" class="hidden" type="file" accept="application/json" onchange="importData(event)"></div>
+</section>
+<footer>WOD TRACKER · Version 1.0 · Données conservées sur cet appareil</footer>
+</main>
+<nav>
+ <button class="active" data-screen="home" onclick="show('home')"><b>⌂</b>Accueil</button>
+ <button data-screen="add" onclick="newWod()"><b>＋</b>Ajouter</button>
+ <button data-screen="history" onclick="show('history')"><b>▤</b>Historique</button>
+ <button data-screen="library" onclick="show('library')"><b>◈</b>Bibliothèque</button>
+ <button data-screen="progress" onclick="show('progress')"><b>↗</b>Stats</button>
+</nav>
+<script>
+const KEY='wod-tracker-v1';
+let sessions=JSON.parse(localStorage.getItem(KEY)||'[]'), exercisesDraft=[], activeFilter='Tous';
+const benchmarks=[
+{name:'Fran',type:'For Time',desc:'21-15-9 Thrusters (43/30 kg) + Pull-ups',ex:[['Thrusters',21,43],['Pull-ups',21,''],['Thrusters',15,43],['Pull-ups',15,''],['Thrusters',9,43],['Pull-ups',9,'']]},
+{name:'Cindy',type:'AMRAP',desc:'20 min : 5 Pull-ups, 10 Push-ups, 15 Air Squats',ex:[['Pull-ups',5,''],['Push-ups',10,''],['Air Squats',15,'']]},
+{name:'Grace',type:'For Time',desc:'30 Clean & Jerks (60/43 kg)',ex:[['Clean & Jerk',30,60]]},
+{name:'Helen',type:'For Time',desc:'3 rounds : 400 m run, 21 KB swings, 12 Pull-ups',ex:[['Course',400,'m'],['KB swings',21,24],['Pull-ups',12,'']]},
+{name:'Murph',type:'For Time',desc:'1 mile run, 100 Pull-ups, 200 Push-ups, 300 Air Squats, 1 mile run',ex:[['Course',1609,'m'],['Pull-ups',100,''],['Push-ups',200,''],['Air Squats',300,''],['Course',1609,'m']]},
+{name:'DT',type:'For Time',desc:'5 rounds : 12 Deadlifts, 9 Hang Power Cleans, 6 Push Jerks',ex:[['Deadlift',12,70],['Hang Power Clean',9,70],['Push Jerk',6,70]]},
+{name:'Annie',type:'For Time',desc:'50-40-30-20-10 Double-unders + Sit-ups',ex:[['Double-unders',50,''],['Sit-ups',50,'']]},
+{name:'Fight Gone Bad',type:'AMRAP',desc:'3 rounds de 1 min par mouvement : Wall Ball, Sumo Deadlift High Pull, Box Jump, Push Press, Row',ex:[['Wall Ball',1,'min'],['SDHP',1,'min'],['Box Jump',1,'min'],['Push Press',1,'min'],['Row',1,'min']]}
+];
+function persist(){localStorage.setItem(KEY,JSON.stringify(sessions))}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===id));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.screen===id));if(id==='home')renderHome();if(id==='history')renderHistory();if(id==='library')renderLibrary();if(id==='progress')renderProgress();window.scrollTo(0,0)}
+function newWod(){resetForm();show('add')}
+function resetForm(){['wname','duration','scoreValue','scoreRounds','scoreReps','notes'].forEach(id=>document.getElementById(id).value='');document.getElementById('wdate').value=new Date().toISOString().slice(0,10);document.getElementById('wtype').value='For Time';document.getElementById('scoreType').value='time';exercisesDraft=[];renderExercises()}
+function addExercise(name='',reps='',weight=''){exercisesDraft.push({name,reps,weight});renderExercises()}
+function renderExercises(){let host=document.getElementById('exercises');host.innerHTML='';if(!exercisesDraft.length){host.innerHTML='<div class="empty">Aucun exercice ajouté pour le moment.</div>';return}exercisesDraft.forEach((e,i)=>{let d=document.createElement('div');d.className='exercise';d.innerHTML=`<div class="row"><div class="exercise-title">EXERCICE ${i+1}</div><button class="danger" style="padding:6px 9px" onclick="removeExercise(${i})">Supprimer</button></div><label>Mouvement</label><input placeholder="Ex. Thruster" value="${esc(e.name)}" oninput="exercisesDraft[${i}].name=this.value"><div class="formgrid"><div><label>Reps / distance</label><input type="number" min="0" placeholder="21" value="${esc(e.reps)}" oninput="exercisesDraft[${i}].reps=this.value"></div><div><label>Charge (kg)</label><input type="number" min="0" step="0.5" placeholder="43" value="${esc(e.weight)}" oninput="exercisesDraft[${i}].weight=this.value"></div><div><label>Unité / détail</label><input placeholder="m, cal..." oninput="exercisesDraft[${i}].unit=this.value" value="${esc(e.unit||'')}"></div></div>`;host.appendChild(d)})}
+function removeExercise(i){exercisesDraft.splice(i,1);renderExercises()}
+function saveWod(){let name=document.getElementById('wname').value.trim();if(!name){alert('Ajoute un nom de WOD.');return}let s={id:Date.now(),name,date:document.getElementById('wdate').value||new Date().toISOString().slice(0,10),type:document.getElementById('wtype').value,duration:document.getElementById('duration').value,scoreType:document.getElementById('scoreType').value,scoreValue:document.getElementById('scoreValue').value.trim(),rounds:document.getElementById('scoreRounds').value,reps:document.getElementById('scoreReps').value,exercises:exercisesDraft.filter(e=>e.name.trim()).map(e=>({...e})),notes:document.getElementById('notes').value.trim()};sessions.push(s);persist();show('home');alert('Séance enregistrée !')}
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function score(s){if(s.scoreType==='rounds')return `${s.rounds||0} + ${s.reps||0}`;return s.scoreValue||'Score non renseigné'}
+function cardHTML(s){return `<div class="item"><div class="row"><div><b>${esc(s.name)}</b><div class="muted small">${new Date(s.date+'T12:00:00').toLocaleDateString('fr-FR')} · ${esc(s.type)}</div></div><div style="text-align:right"><div class="score">${esc(score(s))}</div><span class="muted small">${s.scoreType==='time'?'Temps':s.scoreType==='weight'?'kg':s.scoreType==='rounds'?'Rounds + reps':s.scoreType==='reps'?'reps':''}</span></div></div><div class="row" style="margin-top:8px"><span class="muted small">${(s.exercises||[]).length} exercice(s)</span><button class="secondary" style="padding:7px 10px" onclick="viewSession(${s.id})">Détails</button></div></div>`}
+function renderHome(){document.getElementById('total').textContent=sessions.length;let now=new Date();document.getElementById('month').textContent=sessions.filter(s=>s.date?.slice(0,7)===now.toISOString().slice(0,7)).length;document.getElementById('benchCount').textContent=new Set(sessions.filter(s=>benchmarks.some(b=>b.name.toLowerCase()===s.name.toLowerCase())).map(s=>s.name.toLowerCase())).size;document.getElementById('exerciseCount').textContent=sessions.reduce((n,s)=>n+(s.exercises||[]).length,0);document.getElementById('recent').innerHTML=sessions.length?[...sessions].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,4).map(cardHTML).join(''):'<div class="empty">Tes séances apparaîtront ici.<br>Enregistre ton premier WOD pour commencer !</div>';let days=[];for(let i=6;i>=0;i--){let d=new Date();d.setDate(d.getDate()-i);let key=d.toISOString().slice(0,10);days.push({label:['D','L','M','M','J','V','S'][d.getDay()],n:sessions.filter(s=>s.date===key).length})}let max=Math.max(1,...days.map(x=>x.n));document.getElementById('weekBars').innerHTML=days.map(x=>`<div style="flex:1;text-align:center"><div style="height:${Math.max(5,x.n/max*55)}px;background:${x.n?'var(--accent)':'#303744'};border-radius:5px 5px 2px 2px"></div><div class="muted small" style="margin-top:7px">${x.label}</div></div>`).join('')}
+function setFilter(f,el){activeFilter=f;document.querySelectorAll('#filters .pill').forEach(p=>p.classList.remove('selected'));el.classList.add('selected');renderHistory()}
+function renderHistory(){let q=(document.getElementById('searchHistory')?.value||'').toLowerCase();let arr=[...sessions].filter(s=>(activeFilter==='Tous'||s.type===activeFilter)&&s.name.toLowerCase().includes(q)).sort((a,b)=>b.date.localeCompare(a.date));document.getElementById('historyList').innerHTML=arr.length?arr.map(cardHTML).join(''):'<div class="empty">Aucune séance trouvée.</div>'}
+function viewSession(id){let s=sessions.find(x=>x.id===id);if(!s)return;let ex=(s.exercises||[]).map(e=>`• ${esc(e.name)} — ${esc(e.reps||'—')} ${esc(e.unit||'reps')}${e.weight?' · '+esc(e.weight)+' kg':''}`).join('\n');let msg=`${s.name}\n${s.date} · ${s.type}\nScore : ${score(s)}\n\nExercices :\n${ex||'Aucun exercice détaillé'}\n\nNotes : ${s.notes||'—'}`;alert(msg);if(confirm('Supprimer cette séance ?')){sessions=sessions.filter(x=>x.id!==id);persist();renderHome();renderHistory()}}
+function renderLibrary(){document.getElementById('libraryList').innerHTML=benchmarks.map((b,i)=>`<div class="card"><div class="row"><div><h3>${b.name}</h3><span class="tag">${b.type}</span></div><button onclick="useBenchmark(${i})">＋ Ajouter</button></div><p class="muted small">${b.desc}</p></div>`).join('')}
+function useBenchmark(i){let b=benchmarks[i];resetForm();document.getElementById('wname').value=b.name;document.getElementById('wtype').value=b.type;exercisesDraft=b.ex.map(e=>({name:e[0],reps:e[1],weight:typeof e[2]==='number'?e[2]:'',unit:typeof e[2]==='string'?e[2]:''}));renderExercises();show('add')}
+function renderProgress(){let months=[];for(let i=5;i>=0;i--){let d=new Date();d.setDate(1);d.setMonth(d.getMonth()-i);let key=d.toISOString().slice(0,7);months.push({label:d.toLocaleDateString('fr-FR',{month:'short'}),n:sessions.filter(s=>s.date?.slice(0,7)===key).length})}let max=Math.max(1,...months.map(m=>m.n));document.getElementById('progressBars').innerHTML=months.map(m=>`<div style="display:flex;align-items:center;gap:10px;margin:12px 0"><span class="muted small" style="width:35px">${m.label}</span><div class="bar" style="flex:1"><span style="width:${m.n/max*100}%"></span></div><b>${m.n}</b></div>`).join('');let recs={};sessions.forEach(s=>{if(s.scoreType==='weight'&&Number(s.scoreValue)){recs[s.name]=Math.max(recs[s.name]||0,Number(s.scoreValue))}});document.getElementById('records').innerHTML=Object.keys(recs).length?Object.entries(recs).map(([n,v])=>`<div class="row item"><b>${esc(n)}</b><strong>${v} kg</strong></div>`).join(''):'<div class="empty">Les records de charge apparaîtront ici lorsque tu enregistreras des scores en kg.</div>';let names=[...new Set(sessions.map(s=>s.name))];let sel=document.getElementById('compareSelect'),old=sel.value;sel.innerHTML=names.map(n=>`<option>${esc(n)}</option>`).join('');if(names.includes(old))sel.value=old;renderComparison()}
+function renderComparison(){let n=document.getElementById('compareSelect').value;let a=sessions.filter(s=>s.name===n).sort((x,y)=>x.date.localeCompare(y.date));document.getElementById('comparison').innerHTML=a.length?a.map(s=>`<div class="row item"><span class="muted small">${new Date(s.date+'T12:00:00').toLocaleDateString('fr-FR')}</span><b>${esc(score(s))}</b></div>`).join(''):'<div class="empty">Enregistre plusieurs fois le même WOD pour comparer tes scores.</div>'}
+function exportData(){let blob=new Blob([JSON.stringify({version:1,sessions},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='wod-tracker-backup.json';a.click();URL.revokeObjectURL(url)}
+function importData(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let d=JSON.parse(r.result);if(!Array.isArray(d.sessions))throw Error();if(confirm('Remplacer les données actuelles par la sauvegarde importée ?')){sessions=d.sessions;persist();renderProgress();alert('Sauvegarde importée.')}}catch{alert('Fichier de sauvegarde invalide.')}};r.readAsText(f)}
+resetForm();renderHome();if('serviceWorker'in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script>
+</body></html>
